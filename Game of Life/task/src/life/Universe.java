@@ -18,7 +18,17 @@ public class Universe {
             System.out.println();
         }
     }
-
+    public int getAliveCount() {
+        int count = 0;
+        for (List<Boolean> row : universe) {
+            for (Boolean cellState : row) {
+                if (cellState) {
+                    count++;
+                }
+            }
+        }
+        return  count;
+    }
     public List<List<Boolean>> getUniverse() {
         return universe;
     }

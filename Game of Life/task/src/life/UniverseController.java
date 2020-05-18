@@ -5,8 +5,14 @@ import java.util.List;
 import java.util.Random;
 
 public class UniverseController {
-    public static Universe createUniverse(int n, long seed) {
-        Random random = new Random(seed);
+    public static Universe createUniverse(int n, Long seed) {
+        Random random;
+        if(seed != null) {
+            random = new Random(seed);
+        } else {
+            random = new Random();
+        }
+
         List<List<Boolean>> universeArray = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             universeArray.add(new ArrayList<>());
