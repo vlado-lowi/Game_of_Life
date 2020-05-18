@@ -1,6 +1,5 @@
 package life;
 
-import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
@@ -8,21 +7,12 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         int n = scanner.nextInt();
         long seed = scanner.nextLong();
+        int generations = scanner.nextInt();
         scanner.close();
-        populateUniverse(n, seed);
-    }
-
-    private static void populateUniverse(int n, long seed) {
-        Random random = new Random(seed);
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if (random.nextBoolean()){
-                    System.out.print("O");
-                } else {
-                    System.out.print(" ");
-                }
-            }
-            System.out.println();
+        Universe universe = UniverseController.createUniverse(n, seed); // Gen #0
+        for (int i = 0; i < generations; i++) { // get requested generation
+            universe = UniverseController.getNextGeneration(universe);
         }
+        universe.print();
     }
 }
