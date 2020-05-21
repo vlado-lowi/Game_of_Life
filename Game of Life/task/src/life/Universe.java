@@ -10,14 +10,14 @@ public class Universe {
         this.universe = universe;
     }
 
-    public void print() {
-        for (List<Boolean> row : universe) {
-            for (Boolean cellState : row) {
-                System.out.print(cellState ? "O" : " ");
-            }
-            System.out.println();
-        }
-    }
+//    public void print() {
+//        for (List<Boolean> row : universe) {
+//            for (Boolean cellState : row) {
+//                System.out.print(cellState ? "O" : " ");
+//            }
+//            System.out.println();
+//        }
+//    }
     public int getAliveCount() {
         int count = 0;
         for (List<Boolean> row : universe) {

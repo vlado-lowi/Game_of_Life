@@ -23,7 +23,7 @@ public class UniverseController {
         return new Universe(universeArray);
     }
 
-    public static Universe getNextGeneration(Universe universe) {
+    public static void getNextGeneration(Universe universe) {
         List<List<Boolean>> thisGeneration = universe.getUniverse();
         List<List<Boolean>> nextGenUniverseArr = new ArrayList<>();
         for (int i = 0; i < thisGeneration.size(); i++) {
@@ -32,7 +32,7 @@ public class UniverseController {
                 nextGenUniverseArr.get(i).add(getNextCellState(i, j, thisGeneration));
             }
         }
-        return new Universe(nextGenUniverseArr);
+        universe.setUniverse(nextGenUniverseArr);
     }
 
     /*
