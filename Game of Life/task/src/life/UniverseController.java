@@ -20,10 +20,18 @@ public class UniverseController {
                 universeArray.get(i).add(random.nextBoolean());
             }
         }
-        return new Universe(universeArray);
+        return new Universe(universeArray, 1);
     }
 
     public static void getNextGeneration(Universe universe) {
+        if (universe.getUniverse() == null) {
+            int size = 20;
+            Long seed = null;
+            Universe universe1 = createUniverse(size, seed);
+            universe.setUniverse(universe1.getUniverse());
+            universe.setGeneration(universe1.getGeneration());
+            return;
+        }
         List<List<Boolean>> thisGeneration = universe.getUniverse();
         List<List<Boolean>> nextGenUniverseArr = new ArrayList<>();
         for (int i = 0; i < thisGeneration.size(); i++) {
@@ -33,8 +41,23 @@ public class UniverseController {
             }
         }
         universe.setUniverse(nextGenUniverseArr);
+        universe.setGeneration(universe.getGeneration() + 1);
     }
 
+    public static List<Cell> getIndicesOfAliveCells(Universe universe) {
+        if (universe == null || universe.getUniverse() == null) {
+            return new ArrayList<>();
+        }
+        List<Cell> resultList = new ArrayList<>();
+        for (int i = 0; i < universe.getUniverse().size(); i++) {
+            for (int j = 0; j < universe.getUniverse().get(0).size(); j++) {
+                if (universe.getUniverse().get(i).get(j)) {
+                    resultList.add(new Cell(i, j));
+                }
+            }
+        }
+        return resultList;
+    }
     /*
     We consider the universe to be periodic: border cells also have eight neighbors. For example:
     If cell is right-border, its right (east) neighbor is leftmost cell in the same row.
