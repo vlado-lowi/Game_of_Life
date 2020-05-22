@@ -36,7 +36,6 @@ public class GameOfLife {
         this.generationLabel = new JLabel();
         generationLabel.setName("GenerationLabel");
         generationLabel.setText("  Generation #0");
-//        labelsPanel.setBorder(BorderFactory.createDashedBorder(Color.BLUE));
         labelsPanel.add(generationLabel);
 
         this.aliveLabel = new JLabel();
@@ -45,20 +44,19 @@ public class GameOfLife {
         labelsPanel.add(aliveLabel);
 
         JButton button = new JButton("Start");
-        SwingWorker<Void, List<Cell>> worker = new SwingWorker<>() {
+        SwingWorker<Void, Boolean> worker = new SwingWorker<>() {
             @Override
             public Void doInBackground() throws Exception {
                 for(int i = 0; i < 50; i++) {
                     TimeUnit.MILLISECONDS.sleep(500);
                     UniverseController.getNextGeneration(universe);
-                    publish(UniverseController.getIndicesOfAliveCells(universe));
+                    publish(true);
                 }
                 return null;
             }
 
             @Override
-            protected void process(List<List<Cell>> chunks) {
-                List<Cell> aliveCells = chunks.get(chunks.size() - 1);
+            protected void process(List<Boolean> ignored) {
                 drawingPanel.repaint();
                 updateUI();
             }
@@ -66,8 +64,6 @@ public class GameOfLife {
             @Override
             protected void done() {
                 updateUI();
-//                DrawingPanel panel = (DrawingPanel) drawingPanel;
-//                panel.repaintCells();
                 drawingPanel.repaint();
                 System.out.println("REDRAWING");
             }
@@ -88,15 +84,9 @@ public class GameOfLife {
         });
         labelsPanel.add(button);
 
-
         frame.add(labelsPanel, BorderLayout.NORTH);
-
         this.drawingPanel = new DrawingPanel(universe);
         drawingPanel.paint(drawingPanel.getGraphics());
-//        drawingPanel.setBorder(BorderFactory.createDashedBorder(Color.RED));
         frame.add(drawingPanel, BorderLayout.CENTER);
     }
-
-    // todo create updateAliveAndGeneration method
-    //  that changes generation and alive based on universe reference
 }
