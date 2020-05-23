@@ -2,48 +2,49 @@ package life;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class GameOfLife {
-    Universe universe;
-    JFrame f;
-    JLabel aliveLabel;
-    JLabel generationLabel;
-    JPanel drawingPanel;
+    private final Universe universe;
+    private final JFrame frame;
+    private JLabel aliveLabel;
+    private JLabel generationLabel;
+    private JPanel drawingPanel;
 
     public GameOfLife(Universe universe) {
         this.universe = universe;
-        System.out.println("Created GUI on EDT? "+
-                SwingUtilities.isEventDispatchThread());
-        this.f = new JFrame("Game of Life");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setSize(300, 300);
-        f.setLocationRelativeTo(null);
-        f.setLayout(new BorderLayout());
 
-        initComponents(f);
+        // create new frame
+        this.frame = new JFrame("Game of Life");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 300);
+        frame.setLocationRelativeTo(null);
+        frame.setLayout(new BorderLayout());
 
-        f.pack();
-        f.setVisible(true);
+        initComponents();
+
+        frame.pack(); // makes the window correct size for its content ?
+        frame.setVisible(true);
     }
 
-    private void initComponents(JFrame frame) {
-        JPanel labelsPanel = new JPanel(new GridLayout(2, 1, 0,2));
+    private void initComponents() {
+        // panel for info and tools
+        JPanel controlPanel = new JPanel(new GridLayout(2, 1, 0,2));
 
+        // create label and add it to panel
         this.generationLabel = new JLabel();
         generationLabel.setName("GenerationLabel");
         generationLabel.setText("  Generation #0");
-        labelsPanel.add(generationLabel);
+        controlPanel.add(generationLabel);
 
+        // create label and add it to panel
         this.aliveLabel = new JLabel();
         aliveLabel.setName("AliveLabel");
         aliveLabel.setText("  Alive: 0");
-        labelsPanel.add(aliveLabel);
+        controlPanel.add(aliveLabel);
 
-        JButton button = new JButton("Start");
+        // worker calculates state of universe and draws it on drawingPanel
         SwingWorker<Void, Boolean> worker = new SwingWorker<>() {
             @Override
             public Void doInBackground() throws Exception {
@@ -65,7 +66,6 @@ public class GameOfLife {
             protected void done() {
                 updateUI();
                 drawingPanel.repaint();
-                System.out.println("REDRAWING");
             }
             private void updateUI() { // update labels
                 String genText = String.format("  Generation #%d", universe.getGeneration());
@@ -76,15 +76,16 @@ public class GameOfLife {
             }
         };
 
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                worker.execute();
-            }
-        });
-        labelsPanel.add(button);
+        // create a button that starts the execution of SwingWorker
+        JButton button = new JButton("Start");
+        button.addActionListener(actionEvent -> worker.execute());
+        // add button to panel
+        controlPanel.add(button);
 
-        frame.add(labelsPanel, BorderLayout.NORTH);
+        // add control panel to frame (using borderLayout on frame)
+        frame.add(controlPanel, BorderLayout.NORTH);
+
+        // create new drawingPanel and add it to frame
         this.drawingPanel = new DrawingPanel(universe);
         drawingPanel.paint(drawingPanel.getGraphics());
         frame.add(drawingPanel, BorderLayout.CENTER);

@@ -2,16 +2,13 @@ package life;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 public class DrawingPanel extends JPanel {
-    Universe universe;
-    List<List<Boolean>> universeArr;
+    private final Universe universe;
 
     public DrawingPanel(Universe universe) {
         setBorder(BorderFactory.createLineBorder(Color.BLACK));
         this.universe = universe;
-        this.universeArr = universe.getUniverse();
     }
 
     @Override
@@ -22,14 +19,19 @@ public class DrawingPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        g.setColor(Color.BLACK);
         for(int i = 0 ; i < 20; i++) {
-            g.setColor(Color.BLACK);
+            // draw the grid of empty cells
             g.drawLine(0, i * 25, 500, i*25);
             g.drawLine(i *25, 0, i * 25, 500);
         }
-        // fill the alive cells
+
         g.setColor(Color.DARK_GRAY);
-        for (Cell cell : UniverseController.getIndicesOfAliveCells(universe)) {
+        // there should be no logic in paint method
+        //  - getAliveCells returns a List of Cells that should be printed
+        for (Cell cell : universe.getAliveCells()) {
+            // fill in the alive cells
             g.fillRect(25 * cell.getX() + 1, 25 * cell.getY() + 1, 24, 24);
         }
     }
