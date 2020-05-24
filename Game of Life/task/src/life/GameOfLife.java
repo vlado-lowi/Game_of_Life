@@ -2,33 +2,39 @@ package life;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class GameOfLife {
-    private final Universe universe;
+    private Universe universe;
     private final JFrame frame;
     private JLabel aliveLabel;
     private JLabel generationLabel;
-    private JPanel drawingPanel;
+    private DrawingPanel drawingPanel;
+    private JToggleButton toggleButton;
 
-    public GameOfLife(Universe universe) {
-        this.universe = universe;
-
-        // create new frame
+    public GameOfLife() {
         this.frame = new JFrame("Game of Life");
+    }
+
+    public void startGUI( ) {
+        this.universe = new Universe();
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(300, 300);
         frame.setLocationRelativeTo(null);
         frame.setLayout(new BorderLayout());
 
-        initComponents();
+        SwingWorker<Void, Boolean> worker = initComponents();
 
         frame.pack(); // makes the window correct size for its content ?
         frame.setVisible(true);
+        worker.execute();
     }
 
-    private void initComponents() {
+    private SwingWorker<Void, Boolean> initComponents() {
         // panel for info and tools
         JPanel controlPanel = new JPanel(new GridLayout(2, 1, 0,2));
 
@@ -45,13 +51,26 @@ public class GameOfLife {
         controlPanel.add(aliveLabel);
 
         // worker calculates state of universe and draws it on drawingPanel
-        SwingWorker<Void, Boolean> worker = new SwingWorker<>() {
+        PausableSwingWorker<Void, Boolean> worker = new PausableSwingWorker<>() {
             @Override
             public Void doInBackground() throws Exception {
-                for(int i = 0; i < 50; i++) {
-                    TimeUnit.MILLISECONDS.sleep(500);
-                    UniverseController.getNextGeneration(universe);
-                    publish(true);
+                pause();
+                while(!isCancelled()) {
+                    if (isResetRequested()) {
+                        removeResetRequest();
+                        System.out.println("Creating universe with new seed");
+                        universe = UniverseController.createUniverse(20, null);
+                        drawingPanel.setUniverse(universe);
+                        publish(true);
+                        pause();
+                    }
+                    if (isPaused()) {
+                        TimeUnit.MILLISECONDS.sleep(100);
+                    } else {
+                        TimeUnit.MILLISECONDS.sleep(500);
+                        UniverseController.getNextGeneration(universe);
+                        publish(true);
+                    }
                 }
                 return null;
             }
@@ -76,11 +95,35 @@ public class GameOfLife {
             }
         };
 
-        // create a button that starts the execution of SwingWorker
-        JButton button = new JButton("Start");
-        button.addActionListener(actionEvent -> worker.execute());
-        // add button to panel
-        controlPanel.add(button);
+
+
+        // toggle button pause and resume
+        this.toggleButton = new JToggleButton("Pause/Resume");
+        toggleButton.setName("PlayToggleButton");
+        toggleButton.addActionListener(actionEvent -> {
+            // if button is pressed pause
+            if (((JToggleButton) actionEvent.getSource()).isSelected()) {
+                worker.pause();
+            } else {
+                worker.resume();
+            }
+        });
+
+        // start button
+        JButton startButton = new JButton("Start");
+        startButton.addActionListener(actionEvent -> {
+            setToggleButton(false);
+            worker.resume();
+        });
+        controlPanel.add(startButton);
+
+        controlPanel.add(toggleButton);
+
+        // button than creates a new universe
+        JButton resetButton = new JButton("ResetButton");
+        resetButton.setName("ResetButton");
+        resetButton.addActionListener(actionEvent -> worker.requestReset());
+        controlPanel.add(resetButton);
 
         // add control panel to frame (using borderLayout on frame)
         frame.add(controlPanel, BorderLayout.NORTH);
@@ -89,5 +132,10 @@ public class GameOfLife {
         this.drawingPanel = new DrawingPanel(universe);
         drawingPanel.paint(drawingPanel.getGraphics());
         frame.add(drawingPanel, BorderLayout.CENTER);
+        return worker;
+    }
+
+    private void setToggleButton(boolean selected) {
+        toggleButton.setSelected(selected);
     }
 }

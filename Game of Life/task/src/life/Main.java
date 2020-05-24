@@ -4,7 +4,6 @@ import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        final Universe universe = new Universe(); // generation 0
-        SwingUtilities.invokeLater(() -> new GameOfLife(universe)); // start GUI
+        SwingUtilities.invokeLater(() -> new GameOfLife().startGUI()); // start GUI
     }
 }

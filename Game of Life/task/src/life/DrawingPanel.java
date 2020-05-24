@@ -4,10 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 
 public class DrawingPanel extends JPanel {
-    private final Universe universe;
+    private Universe universe;
 
     public DrawingPanel(Universe universe) {
         setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        this.universe = universe;
+    }
+
+    public void setUniverse(Universe universe) {
         this.universe = universe;
     }
 
