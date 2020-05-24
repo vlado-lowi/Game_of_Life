@@ -4,6 +4,6 @@ import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new GameOfLife().startGUI()); // start GUI
+        SwingUtilities.invokeLater(GameOfLife::new); // start GUI
     }
 }

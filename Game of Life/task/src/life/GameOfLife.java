@@ -7,30 +7,25 @@ import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class GameOfLife {
+public class GameOfLife extends JFrame {
     private Universe universe;
-    private final JFrame frame;
     private JLabel aliveLabel;
     private JLabel generationLabel;
     private DrawingPanel drawingPanel;
     private JToggleButton toggleButton;
 
     public GameOfLife() {
-        this.frame = new JFrame("Game of Life");
-    }
-
-    public void startGUI( ) {
         this.universe = new Universe();
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 300);
-        frame.setLocationRelativeTo(null);
-        frame.setLayout(new BorderLayout());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(300, 300);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
         SwingWorker<Void, Boolean> worker = initComponents();
 
-        frame.pack(); // makes the window correct size for its content ?
-        frame.setVisible(true);
+        pack(); // makes the window correct size for its content ?
+        setVisible(true);
         worker.execute();
     }
 
@@ -126,12 +121,12 @@ public class GameOfLife {
         controlPanel.add(resetButton);
 
         // add control panel to frame (using borderLayout on frame)
-        frame.add(controlPanel, BorderLayout.NORTH);
+        add(controlPanel, BorderLayout.NORTH);
 
         // create new drawingPanel and add it to frame
         this.drawingPanel = new DrawingPanel(universe);
         drawingPanel.paint(drawingPanel.getGraphics());
-        frame.add(drawingPanel, BorderLayout.CENTER);
+        add(drawingPanel, BorderLayout.CENTER);
         return worker;
     }
 
