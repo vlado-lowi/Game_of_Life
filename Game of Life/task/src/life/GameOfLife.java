@@ -1,6 +1,8 @@
 package life;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +15,9 @@ public class GameOfLife extends JFrame {
     private JLabel generationLabel;
     private DrawingPanel drawingPanel;
     private JToggleButton toggleButton;
+    static final int MAX_SPEED = 1050;
+    static final int MIN_SPEED = 50;
+    static final int INIT_SPEED = 500;
 
     public GameOfLife() {
         this.universe = new Universe();
@@ -30,23 +35,11 @@ public class GameOfLife extends JFrame {
     }
 
     private SwingWorker<Void, Boolean> initComponents() {
-        // panel for info and tools
-        JPanel controlPanel = new JPanel(new GridLayout(2, 1, 0,2));
-
-        // create label and add it to panel
-        this.generationLabel = new JLabel();
-        generationLabel.setName("GenerationLabel");
-        generationLabel.setText("  Generation #0");
-        controlPanel.add(generationLabel);
-
-        // create label and add it to panel
-        this.aliveLabel = new JLabel();
-        aliveLabel.setName("AliveLabel");
-        aliveLabel.setText("  Alive: 0");
-        controlPanel.add(aliveLabel);
 
         // worker calculates state of universe and draws it on drawingPanel
         PausableSwingWorker<Void, Boolean> worker = new PausableSwingWorker<>() {
+
+
             @Override
             public Void doInBackground() throws Exception {
                 pause();
@@ -58,11 +51,12 @@ public class GameOfLife extends JFrame {
                         drawingPanel.setUniverse(universe);
                         publish(true);
                         pause();
+                        setToggleButton(true);
                     }
                     if (isPaused()) {
                         TimeUnit.MILLISECONDS.sleep(100);
                     } else {
-                        TimeUnit.MILLISECONDS.sleep(500);
+                        TimeUnit.MILLISECONDS.sleep(speed);
                         UniverseController.getNextGeneration(universe);
                         publish(true);
                     }
@@ -91,9 +85,8 @@ public class GameOfLife extends JFrame {
         };
 
 
-
         // toggle button pause and resume
-        this.toggleButton = new JToggleButton("Pause/Resume");
+        this.toggleButton = new JToggleButton("Pause");
         toggleButton.setName("PlayToggleButton");
         toggleButton.addActionListener(actionEvent -> {
             // if button is pressed pause
@@ -110,18 +103,62 @@ public class GameOfLife extends JFrame {
             setToggleButton(false);
             worker.resume();
         });
-        controlPanel.add(startButton);
 
-        controlPanel.add(toggleButton);
 
         // button than creates a new universe
-        JButton resetButton = new JButton("ResetButton");
+        JButton resetButton = new JButton("Reset");
         resetButton.setName("ResetButton");
         resetButton.addActionListener(actionEvent -> worker.requestReset());
-        controlPanel.add(resetButton);
+
+        // panel for info and tools
+        JPanel sidePanel = new JPanel(new BorderLayout());
+
+        JPanel buttonsPanel = new JPanel(new GridLayout(1, 3, 5, 50));
+        buttonsPanel.add(startButton);
+        buttonsPanel.add(toggleButton);
+        buttonsPanel.add(resetButton);
+
+        sidePanel.add(buttonsPanel, BorderLayout.NORTH);
+
+        // create label and add it to panel
+        this.generationLabel = new JLabel();
+        generationLabel.setName("GenerationLabel");
+        generationLabel.setText("  Generation #0");
+        generationLabel.setFont(new Font("Serif", Font.BOLD, 16));
+        JPanel centerSidePanel = new JPanel();
+        centerSidePanel.setLayout(new BoxLayout(centerSidePanel, BoxLayout.Y_AXIS));
+        centerSidePanel.add(Box.createRigidArea(new Dimension(5, 20)));
+        centerSidePanel.add(generationLabel);
+//        sidePanel.add(generationLabel, BorderLayout.CENTER);
+
+        // create label and add it to panel
+        this.aliveLabel = new JLabel();
+        aliveLabel.setName("AliveLabel");
+        aliveLabel.setText("  Alive: 0");
+        aliveLabel.setFont(new Font("Serif", Font.BOLD, 16));
+//        sidePanel.add(aliveLabel, BorderLayout.CENTER);
+        centerSidePanel.add(aliveLabel);
+        centerSidePanel.add(Box.createRigidArea(new Dimension(5, 20)));
+        JLabel speedLabel = new JLabel("Speed mode:");
+        centerSidePanel.add(speedLabel);
+        JSlider speedSlider =
+                new JSlider(JSlider.HORIZONTAL, MIN_SPEED, MAX_SPEED, INIT_SPEED);
+        speedSlider.addChangeListener(changeEvent -> {
+            JSlider source = (JSlider)changeEvent.getSource();
+            if (!source.getValueIsAdjusting()) {
+                int speed = source.getValue();
+                worker.setSpeed(speed);
+            }
+        });
+        speedSlider.setMajorTickSpacing(200);
+        speedSlider.setPaintLabels(true);
+        centerSidePanel.add(speedSlider);
+        sidePanel.add(centerSidePanel, BorderLayout.CENTER);
+
+
 
         // add control panel to frame (using borderLayout on frame)
-        add(controlPanel, BorderLayout.NORTH);
+        add(sidePanel, BorderLayout.WEST);
 
         // create new drawingPanel and add it to frame
         this.drawingPanel = new DrawingPanel(universe);
@@ -133,4 +170,5 @@ public class GameOfLife extends JFrame {
     private void setToggleButton(boolean selected) {
         toggleButton.setSelected(selected);
     }
+
 }

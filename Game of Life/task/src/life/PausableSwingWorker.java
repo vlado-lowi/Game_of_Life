@@ -6,6 +6,11 @@ abstract class PausableSwingWorker<K, V> extends SwingWorker<K, V> {
 
     private volatile boolean isPaused;
     private volatile boolean resetRequested;
+    int speed = GameOfLife.INIT_SPEED;
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
 
     public final boolean isResetRequested() {
         return resetRequested;
