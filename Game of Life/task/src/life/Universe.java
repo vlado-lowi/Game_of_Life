@@ -36,9 +36,11 @@ public class Universe {
         this.generation = generation;
         if (universe == null) {
             this.alive = 0;
+            this.aliveCells = new ArrayList<>();
         } else {
             // goes over the newly set 2D array and counts alive cells
             this.alive = countAliveCells();
+            this.aliveCells = UniverseController.getIndicesOfAliveCells(this);
         }
     }
 
