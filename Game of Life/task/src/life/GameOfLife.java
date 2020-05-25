@@ -165,6 +165,9 @@ public class GameOfLife extends JFrame {
         // set size label
         JLabel sizeLabel = new JLabel("Set size:");
 
+        // set color label
+        JLabel colorLabel = new JLabel("Select color of cells: ");
+
         // application properties
 
         // speed slider
@@ -194,6 +197,9 @@ public class GameOfLife extends JFrame {
             worker.requestResize(size);
         });
         sizeField.setSize(100, 30);
+
+        //todo create a JColorChooser
+        //todo apply color from JColorChooser to cells
 
         // panels
 
