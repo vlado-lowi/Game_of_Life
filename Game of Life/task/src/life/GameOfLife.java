@@ -174,10 +174,9 @@ public class GameOfLife extends JFrame {
         // changes the speed of worker when the slider position changes
         speedSlider.addChangeListener(changeEvent -> {
             JSlider source = (JSlider)changeEvent.getSource();
-            if (!source.getValueIsAdjusting()) { // not true while user is selecting the value
-                int speed = source.getValue();
-                worker.setSpeed(speed);
-            }
+            int speed = source.getValue();
+            worker.setSpeed(speed);
+
         });
         speedSlider.setMajorTickSpacing(100);
         speedSlider.setMinorTickSpacing(20);
