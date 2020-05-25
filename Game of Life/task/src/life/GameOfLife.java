@@ -1,35 +1,41 @@
 package life;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
+import java.text.NumberFormat;
 import java.util.concurrent.TimeUnit;
 
+import static life.PausableSwingWorker.*;
+
+/**
+ * Custom UI for the 0 player game of life
+ */
 public class GameOfLife extends JFrame {
+
     private Universe universe;
     private JLabel aliveLabel;
     private JLabel generationLabel;
     private DrawingPanel drawingPanel;
     private JToggleButton toggleButton;
-    static final int MAX_SPEED = 1050;
-    static final int MIN_SPEED = 50;
-    static final int INIT_SPEED = 500;
+
 
     public GameOfLife() {
-        this.universe = new Universe();
 
+        universe = new Universe();
+        setTitle("Game of Life");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(300, 300);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
+        // initialize all components of this frame and get our worker
         SwingWorker<Void, Boolean> worker = initComponents();
 
-        pack(); // makes the window correct size for its content ?
+        // makes the window correct size
+        // decides by looking at components preferred size i think ?
+        pack();
+        // setLocation relative to null opens the window in the middle of screen
+        // must be called after pack() to work properly
+        setLocationRelativeTo(null);
         setVisible(true);
         worker.execute();
     }
@@ -39,53 +45,85 @@ public class GameOfLife extends JFrame {
         // worker calculates state of universe and draws it on drawingPanel
         PausableSwingWorker<Void, Boolean> worker = new PausableSwingWorker<>() {
 
-
+            /**
+             * called after execute() is called on instance of this
+             */
             @Override
             public Void doInBackground() throws Exception {
+                // this method is called right after gui is drawn
+
+                // pause the application at start
                 pause();
+
+                // we never cancel execution of the worker so this is effectively while(true) {...}
                 while(!isCancelled()) {
+                    // did user request another size of universe ?
+                    if (isResizeRequested()) {
+                        System.out.println("Resizing to: " + getRequestedSize());
+
+                        removeResizeRequest();
+                        // reset is needed to create a new universe of requested size
+                        requestReset();
+                    }
+                    // did user request reset of universe state ?
                     if (isResetRequested()) {
                         removeResetRequest();
-                        System.out.println("Creating universe with new seed");
-                        universe = UniverseController.createUniverse(20, null);
+                        System.out.println("Creating new universe");
+
+                        // create new universe with random state and requested(or default) size
+                        universe = UniverseController.createUniverse(getRequestedSize());
+                        // assign universe to drawing panel
+                        // changes the preferred size of panel
                         drawingPanel.setUniverse(universe);
-                        publish(true);
+                        // changes windows size based on preferred size of components
+                        pack();
+                        // move the window after changing it's size
+                        // keeping it in middle of screen
+                        setLocationRelativeTo(null);
+                        // update the user interface to reflect changes
+                        updateUI();
+                        // pause the application after creating new start state
                         pause();
-                        setToggleButton(true);
+                        // make the pause/resume button pressed
+                        toggleButton.setSelected(true);
                     }
                     if (isPaused()) {
+                        // if application is paused wait 100 ms before checking again
                         TimeUnit.MILLISECONDS.sleep(100);
-                    } else {
-                        TimeUnit.MILLISECONDS.sleep(speed);
+                    } else {// no change requests or pause
+                        // update universe to next generation
                         UniverseController.getNextGeneration(universe);
-                        publish(true);
+                        // wait user selected time in ms before drawing next generation
+                        TimeUnit.MILLISECONDS.sleep(speed);
+                        // update the user interface to reflect changes
+                        updateUI();
                     }
                 }
                 return null;
             }
 
-            @Override
-            protected void process(List<Boolean> ignored) {
-                drawingPanel.repaint();
-                updateUI();
-            }
-
+            /**
+             * Called after execution of doInBackground() has finished
+             */
             @Override
             protected void done() {
                 updateUI();
-                drawingPanel.repaint();
             }
+
             private void updateUI() { // update labels
                 String genText = String.format("  Generation #%d", universe.getGeneration());
                 generationLabel.setText(genText);
 
                 String aliveText = String.format("  Alive: %d", universe.getAlive());
                 aliveLabel.setText(aliveText);
+
+                drawingPanel.repaint();
             }
         };
 
+        // buttons
 
-        // toggle button pause and resume
+        // toggle button pause/resume
         this.toggleButton = new JToggleButton("Pause");
         toggleButton.setName("PlayToggleButton");
         toggleButton.addActionListener(actionEvent -> {
@@ -100,75 +138,113 @@ public class GameOfLife extends JFrame {
         // start button
         JButton startButton = new JButton("Start");
         startButton.addActionListener(actionEvent -> {
-            setToggleButton(false);
+            toggleButton.setSelected(false);
             worker.resume();
         });
-
 
         // button than creates a new universe
         JButton resetButton = new JButton("Reset");
         resetButton.setName("ResetButton");
         resetButton.addActionListener(actionEvent -> worker.requestReset());
 
-        // panel for info and tools
-        JPanel sidePanel = new JPanel(new BorderLayout());
+        // labels
 
-        JPanel buttonsPanel = new JPanel(new GridLayout(1, 3, 5, 50));
-        buttonsPanel.add(startButton);
-        buttonsPanel.add(toggleButton);
-        buttonsPanel.add(resetButton);
-
-        sidePanel.add(buttonsPanel, BorderLayout.NORTH);
-
-        // create label and add it to panel
-        this.generationLabel = new JLabel();
+        // generation label
+        generationLabel = new JLabel("  Generation #0");
         generationLabel.setName("GenerationLabel");
-        generationLabel.setText("  Generation #0");
         generationLabel.setFont(new Font("Serif", Font.BOLD, 16));
-        JPanel centerSidePanel = new JPanel();
-        centerSidePanel.setLayout(new BoxLayout(centerSidePanel, BoxLayout.Y_AXIS));
-        centerSidePanel.add(Box.createRigidArea(new Dimension(5, 20)));
-        centerSidePanel.add(generationLabel);
-//        sidePanel.add(generationLabel, BorderLayout.CENTER);
 
-        // create label and add it to panel
-        this.aliveLabel = new JLabel();
+        // alive label
+        aliveLabel = new JLabel("  Alive: 0");
         aliveLabel.setName("AliveLabel");
-        aliveLabel.setText("  Alive: 0");
         aliveLabel.setFont(new Font("Serif", Font.BOLD, 16));
-//        sidePanel.add(aliveLabel, BorderLayout.CENTER);
-        centerSidePanel.add(aliveLabel);
-        centerSidePanel.add(Box.createRigidArea(new Dimension(5, 20)));
-        JLabel speedLabel = new JLabel("Speed mode:");
-        centerSidePanel.add(speedLabel);
+
+        // set speed label
+        JLabel speedLabel = new JLabel("Set time in ms between generations:");
+
+        // set size label
+        JLabel sizeLabel = new JLabel("Set size:");
+
+        // application properties
+
+        // speed slider
+        // select time in milliseconds between drawing distinct generations
         JSlider speedSlider =
                 new JSlider(JSlider.HORIZONTAL, MIN_SPEED, MAX_SPEED, INIT_SPEED);
+        // changes the speed of worker when the slider position changes
         speedSlider.addChangeListener(changeEvent -> {
             JSlider source = (JSlider)changeEvent.getSource();
-            if (!source.getValueIsAdjusting()) {
+            if (!source.getValueIsAdjusting()) { // not true while user is selecting the value
                 int speed = source.getValue();
                 worker.setSpeed(speed);
             }
         });
-        speedSlider.setMajorTickSpacing(200);
+        speedSlider.setMajorTickSpacing(100);
+        speedSlider.setMinorTickSpacing(20);
+        speedSlider.setPaintTicks(true);
         speedSlider.setPaintLabels(true);
-        centerSidePanel.add(speedSlider);
-        sidePanel.add(centerSidePanel, BorderLayout.CENTER);
 
+        // integer number format
+        NumberFormat numberFormat = NumberFormat.getIntegerInstance();
+        // input text field that only takes integers
+        JFormattedTextField sizeField = new JFormattedTextField(numberFormat);
+        // on change reset worker with requested size
+        sizeField.addActionListener(actionEvent -> {
+            JFormattedTextField source = (JFormattedTextField) actionEvent.getSource();
+            int size = ((Number) source.getValue()).intValue();
+            worker.requestResize(size);
+        });
+        sizeField.setSize(100, 30);
 
+        // panels
 
-        // add control panel to frame (using borderLayout on frame)
-        add(sidePanel, BorderLayout.WEST);
+        // button panel with grid layout
+        JPanel buttonsPanel =
+                new JPanel(new GridLayout(1, 3, 5, 50));
+        // add buttons to the panel
+        buttonsPanel.add(startButton);
+        buttonsPanel.add(toggleButton);
+        buttonsPanel.add(resetButton);
 
-        // create new drawingPanel and add it to frame
-        this.drawingPanel = new DrawingPanel(universe);
+        // panel with controls and info
+        JPanel controlPanel = new JPanel(new BorderLayout());
+        // add button panel on top of control panel (NORTH)
+        controlPanel.add(buttonsPanel, BorderLayout.NORTH);
+
+        // universe set size panel
+        JPanel setSizePanel = new JPanel(
+                new GridLayout(1, 2, 5, 30));
+        setSizePanel.setMaximumSize(new Dimension(220, 30));
+
+        // center part of control panel
+        JPanel centerSidePanel = new JPanel();
+        centerSidePanel.setLayout(new BoxLayout(centerSidePanel, BoxLayout.Y_AXIS));
+
+        // drawing panel - for painting
+        drawingPanel = new DrawingPanel(universe);
         drawingPanel.paint(drawingPanel.getGraphics());
+
+        // adding components to panels
+
+        setSizePanel.add(sizeLabel);
+        setSizePanel.add(sizeField);
+        // empty box for spacing
+        centerSidePanel.add(Box.createRigidArea(new Dimension(5, 20)));
+        centerSidePanel.add(generationLabel);
+        centerSidePanel.add(aliveLabel);
+        // empty box for spacing
+        centerSidePanel.add(Box.createRigidArea(new Dimension(5, 20)));
+        centerSidePanel.add(speedLabel);
+        centerSidePanel.add(speedSlider);
+        // empty box for spacing
+        centerSidePanel.add(Box.createRigidArea(new Dimension(5, 20)));
+        centerSidePanel.add(setSizePanel);
+        controlPanel.add(centerSidePanel, BorderLayout.CENTER);
+
+        // add control panel to left(WEST) part of frame
+        add(controlPanel, BorderLayout.WEST);
+        // add drawing panel to center part of frame
         add(drawingPanel, BorderLayout.CENTER);
         return worker;
     }
-
-    private void setToggleButton(boolean selected) {
-        toggleButton.setSelected(selected);
-    }
-
 }
