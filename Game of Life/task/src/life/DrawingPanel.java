@@ -7,6 +7,7 @@ public class DrawingPanel extends JPanel {
     private Universe universe;
     private Dimension preferredSize;
     private final int OFFSET = 5;
+    private Color cellColor = Color.BLUE;
 
     public DrawingPanel(Universe universe) {
         this.universe = universe;
@@ -46,7 +47,7 @@ public class DrawingPanel extends JPanel {
                     i * (cellSize + 1) + OFFSET, gridSize + OFFSET);
         }
 
-        g.setColor(Color.BLUE);
+        g.setColor(getCellColor());
         // there should be no logic in paint method
         //  - getAliveCells returns a List of Cells that should be printed
         for (Cell cell : universe.getAliveCells()) {
@@ -54,5 +55,13 @@ public class DrawingPanel extends JPanel {
             g.fillRect((cellSize + 1) * cell.getX() + 1 + OFFSET,
                     (cellSize + 1) * cell.getY() + 1 + OFFSET, cellSize, cellSize);
         }
+    }
+
+    public Color getCellColor() {
+        return cellColor;
+    }
+
+    public void setCellColor(Color cellColor) {
+        this.cellColor = cellColor;
     }
 }

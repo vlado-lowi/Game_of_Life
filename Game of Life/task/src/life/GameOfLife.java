@@ -1,11 +1,13 @@
 package life;
 
 import javax.swing.*;
+import javax.swing.colorchooser.AbstractColorChooserPanel;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.concurrent.TimeUnit;
 
-import static life.PausableSwingWorker.*;
+import static life.MySwingWorker.*;
 
 /**
  * Custom UI for the 0 player game of life
@@ -43,7 +45,7 @@ public class GameOfLife extends JFrame {
     private SwingWorker<Void, Boolean> initComponents() {
 
         // worker calculates state of universe and draws it on drawingPanel
-        PausableSwingWorker<Void, Boolean> worker = new PausableSwingWorker<>() {
+        MySwingWorker<Void, Boolean> worker = new MySwingWorker<>() {
 
             /**
              * called after execute() is called on instance of this
@@ -147,6 +149,36 @@ public class GameOfLife extends JFrame {
         resetButton.setName("ResetButton");
         resetButton.addActionListener(actionEvent -> worker.requestReset());
 
+        // color chooser button
+        JButton colorChooserButton = new JButton("Select Color");
+        // add action listener
+        // this code is run when colorChooserButton is clicked
+        colorChooserButton.addActionListener(actionEvent -> {
+
+            JColorChooser colorChooser = new JColorChooser();
+            // set preview panel to new JPanel effectively removes the preview panel
+            colorChooser.setPreviewPanel(new JPanel());
+            // remove all panels from colorChooser except for default swatches panel
+            for (AbstractColorChooserPanel panel : colorChooser.getChooserPanels()) {
+                if (!panel.getDisplayName().equalsIgnoreCase("swatches")) {
+                    colorChooser.removeChooserPanel(panel);
+                }
+            }
+
+            // this is executed when OK button is pressed in the dialog
+            ActionListener okActionListener =
+                    actionEvent12 -> drawingPanel.setCellColor(colorChooser.getColor());
+
+            // create the dialog from custom color chooser
+            // the modal value true means you need to finish using dialog
+            // to continue using the original window
+            final JDialog colorDialog = JColorChooser.createDialog(
+                    null, "Change Color for Cells", true,
+                    colorChooser, okActionListener, null);
+            // display the dialog
+            colorDialog.setVisible(true);
+        });
+
         // labels
 
         // generation label
@@ -164,9 +196,6 @@ public class GameOfLife extends JFrame {
 
         // set size label
         JLabel sizeLabel = new JLabel("Set size:");
-
-        // set color label
-        JLabel colorLabel = new JLabel("Select color of cells: ");
 
         // application properties
 
@@ -198,23 +227,14 @@ public class GameOfLife extends JFrame {
         });
         sizeField.setSize(100, 30);
 
-        //todo create a JColorChooser
-        //todo apply color from JColorChooser to cells
-
         // panels
 
         // button panel with grid layout
         JPanel buttonsPanel =
-                new JPanel(new GridLayout(1, 3, 5, 50));
-        // add buttons to the panel
-        buttonsPanel.add(startButton);
-        buttonsPanel.add(toggleButton);
-        buttonsPanel.add(resetButton);
+                new JPanel(new GridLayout(2, 2, 5, 8));
 
         // panel with controls and info
         JPanel controlPanel = new JPanel(new BorderLayout());
-        // add button panel on top of control panel (NORTH)
-        controlPanel.add(buttonsPanel, BorderLayout.NORTH);
 
         // universe set size panel
         JPanel setSizePanel = new JPanel(
@@ -230,6 +250,15 @@ public class GameOfLife extends JFrame {
         drawingPanel.paint(drawingPanel.getGraphics());
 
         // adding components to panels
+
+        // add buttons
+        buttonsPanel.add(startButton);
+        buttonsPanel.add(toggleButton);
+        buttonsPanel.add(resetButton);
+        buttonsPanel.add(colorChooserButton);
+
+        // add button panel on top of control panel (NORTH)
+        controlPanel.add(buttonsPanel, BorderLayout.NORTH);
 
         setSizePanel.add(sizeLabel);
         setSizePanel.add(sizeField);

@@ -2,7 +2,7 @@ package life;
 
 import javax.swing.*;
 
-abstract class PausableSwingWorker<K, V> extends SwingWorker<K, V> {
+abstract class MySwingWorker<K, V> extends SwingWorker<K, V> {
 
     static final int MAX_SPEED = 510;
     static final int MIN_SPEED = 10;
