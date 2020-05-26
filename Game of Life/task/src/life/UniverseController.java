@@ -10,18 +10,10 @@ public class UniverseController {
      *      true = alive cell; false = dead cell
      *      initial state of cells (dead or alive) is random
      * @param size universe will be size * size 2D array
-     * @param seed specify the seed for {@see java.util.Random} instance
-     *             or null to not use seed
      * @return new instance of required size and seed
      */
-    public static Universe createUniverse(int size, Long seed) {
-        Random random;
-        // use seed if its not null
-        if(seed != null) {
-            random = new Random(seed);
-        } else {
-            random = new Random();
-        }
+    public static Universe createUniverse(int size) {
+        Random random = new Random();
 
         // create empty 2D arr
         List<List<Boolean>> universeArray = new ArrayList<>(size);
@@ -34,7 +26,9 @@ public class UniverseController {
                 universeArray.get(i).add(random.nextBoolean());
             }
         }
-        return new Universe(universeArray, 1);
+        Universe universe = new Universe(universeArray, 1);
+        setCellAndGridSize(universe);
+        return universe;
     }
 
     /**
@@ -49,9 +43,8 @@ public class UniverseController {
         // create generation 1 with size and seed
         if (universe.getUniverse() == null) {
             int size = 20; // size of universe
-            Long seed = null; // seed for Random
             // create generation 1 with size and seed
-            universe.setUniverse(createUniverse(size, seed));
+            universe.setUniverse(createUniverse(size));
         } else { // calculate next generation
             int universeSize = universe.getUniverse().size();
             // new 2D list for next generation
@@ -91,6 +84,25 @@ public class UniverseController {
             }
         }
         return resultList;
+    }
+
+    /**
+     * calculate cellSize and gridSize (for paint purposes)
+     * @param universe calculate the size for this and set the
+     *                 instance variables to calculated values
+     */
+    public static void setCellAndGridSize(Universe universe) {
+        int universeSize = universe.getUniverse().size();
+        int cellSize = 1;
+        int gridSize = (cellSize + 1) * universeSize + 1;
+        int maxSize = 900;
+        while (gridSize < maxSize && cellSize < 24) {
+            // 24 max cell size
+            cellSize++;
+            gridSize = (cellSize + 1) * universeSize + 1;
+        }
+        universe.setCellSize(cellSize);
+        universe.setGridSize(gridSize);
     }
 
     /**
